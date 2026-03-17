@@ -1,68 +1,46 @@
 class Product:
-    """
-    Represents a grocery product in the store inventory.
-    Tracks name, unit price, stock quantity, and calculates total stock value.
-    """
+    """Grocery product with price, stock quantity, and total value calculation."""
 
     def __init__(self, name, price_per_unit, quantity):
         """
-        Initialize a product.
-
         Args:
-            name (str): Product name (e.g., "Apple", "Milk")
-            price_per_unit (float): Price for one unit (positive number)
-            quantity (int): Number of units currently in stock (non-negative integer)
+            name (str): Product name.
+            price_per_unit (float): Price per unit (must be positive).
+            quantity (int): Units in stock (must be non-negative).
         """
         if not name.strip():
             raise ValueError("Product name cannot be empty")
         if price_per_unit <= 0:
-            raise ValueError(
-                f"Price per unit must be positive. Got {price_per_unit} for {name}")
+            raise ValueError(f"Price must be positive. Got {price_per_unit} for {name}")
         if quantity < 0:
-            raise ValueError(
-                f"Quantity cannot be negative. Got {quantity} for {name}")
+            raise ValueError(f"Quantity cannot be negative. Got {quantity} for {name}")
 
         self.name = name.strip()
         self.price_per_unit = float(price_per_unit)
         self.quantity = int(quantity)
 
     def total_value(self):
-        """
-        Calculate the total monetary value of this product currently in stock.
-
-        Returns:
-            float: Total value = price_per_unit × quantity
-        """
+        """Stock value for this product: price × quantity."""
         return self.price_per_unit * self.quantity
 
     def __str__(self):
-        """
-        Return a nicely formatted string for display.
-        Aligns columns for better readability in reports.
-        """
-        value = self.total_value()
+        """Formatted row for the inventory report."""
         return (
             f"{self.name:<20} "
             f"Price: ${self.price_per_unit:>7.2f}  "
             f"Qty: {self.quantity:>4}  "
-            f"Total value: ${value:>10,.2f}"
+            f"Total value: ${self.total_value():>10,.2f}"
         )
 
 
-def main():
-    """
-    Main program:
-    - Collects information for 3 grocery products
-    - Validates inputs
-    - Sorts products by total inventory value (highest to lowest)
-    - Prints a clean inventory report
-    """
+def collect_products(count=3):
+    """Prompt the user to enter `count` products and return them as a list."""
     print("=== Grocery Inventory Manager ===")
-    print("Enter details for 3 products\n")
+    print(f"Enter details for {count} products\n")
 
-    products_list = []
+    products = []
 
-    for i in range(1, 4):
+    for i in range(1, count + 1):
         print(f"Product #{i}:")
         while True:
             try:
@@ -71,35 +49,28 @@ def main():
                     print("  Name cannot be empty. Try again.")
                     continue
 
-                price_input = input("  Price per unit ($): ").strip()
-                price = float(price_input)
+                price = float(input("  Price per unit ($): ").strip())
+                qty = int(input("  Quantity in stock: ").strip())
 
-                qty_input = input("  Quantity in stock: ").strip()
-                qty = int(qty_input)
-
-                product = Product(name, price, qty)
-                products_list.append(product)
-                print()  # blank line between products
+                products.append(Product(name, price, qty))
+                print()
                 break
 
             except ValueError as e:
+                # Distinguish conversion errors from our own validation errors
                 if "could not convert" in str(e):
                     print("  Invalid number. Please enter valid numbers.\n")
                 else:
                     print(f"  Error: {e}\n")
 
-    if not products_list:
-        print("No valid products entered. Exiting.")
-        return
+    return products
 
-    # Sort by total value descending (most valuable stock first)
-    sorted_products = sorted(
-        products_list,
-        key=lambda p: p.total_value(),
-        reverse=True
-    )
 
-    # Print formatted report
+def print_report(products):
+    """Print products sorted by total stock value, highest first."""
+    sorted_products = sorted(products, key=lambda p: p.total_value(), reverse=True)
+    grand_total = sum(p.total_value() for p in sorted_products)
+
     print("\n" + "=" * 65)
     print("          GROCERY INVENTORY REPORT")
     print("     (sorted by total stock value - highest first)")
@@ -111,15 +82,17 @@ def main():
         print(product)
 
     print("-" * 65)
-
-    # Optional: show grand total inventory value
-    grand_total = sum(p.total_value() for p in sorted_products)
     print(f"{'Grand Total Inventory Value':<50} ${grand_total:>10,.2f}")
     print(f"\nProducts in stock: {len(sorted_products)}\n")
 
 
-# ────────────────────────────────────────────────
-#                     Run program
-# ────────────────────────────────────────────────
+def main():
+    products = collect_products()
+    if products:
+        print_report(products)
+    else:
+        print("No valid products entered. Exiting.")
+
+
 if __name__ == "__main__":
     main()
